@@ -9,7 +9,8 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23101113'/%3E%3Cpath d='M83 28A40 40 0 1 0 83 72L51 50Z' fill='%23edfa78'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="worm.css">
-  <script type="module" src="app.js?v=worm-1"></script>
+  <link rel="stylesheet" href="borough.css">
+  <script type="module" src="app.js?v=borough-1"></script>
 </head>
 <body>
   <div class="site-shell">
@@ -29,7 +30,7 @@
           <p>A few minutes, a familiar challenge, and one more try.<br class="desktop-break"> Your next high score starts here.</p>
         </div>
 
-        <div class="section-label"><h2>The collection</h2><span>03 GAMES & COUNTING</span></div>
+        <div class="section-label"><h2>The collection</h2><span>04 GAMES & COUNTING</span></div>
         <article class="game-card">
           <div class="game-art" aria-hidden="true">
             <span class="art-label">THE ORIGINAL MAZE CHASE</span>
@@ -67,6 +68,10 @@
         <article class="game-card worm-card" lang="de">
           <div class="game-art worm-art" aria-hidden="true"><span class="art-label">DIE WELT HAT ETWAS FÜR DICH VERSTECKT</span><canvas id="worm-preview" width="960" height="640"></canvas><span class="art-caption"><span class="small-dot"></span> EIN KLEINER WURM. UNENDLICH VIELE WUNDER.</span></div>
           <div class="game-details"><div class="game-meta"><span class="pill">MAGISCHES ENTDECKERSPIEL</span><span class="game-number">NO. 003</span></div><div><h3>Wurm &amp;<br>Wunder<span class="title-dot">.</span></h3><p class="game-description">Grabe in deinem Tempo, finde Märchenschätze und lass mit jedem Herz ein kleines Stück Welt erblühen.</p></div><div class="game-facts"><span>1 Spieler</span><span>Pfeiltasten &amp; Touch</span><span>Deutsch</span></div><button id="worm-play-button" class="button primary">Wunder entdecken <svg class="action-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12"/></svg></button><p class="play-note">Deine Welt wartet. Und erinnert sich an dich.</p></div>
+        </article>
+        <article class="game-card borough-card">
+          <div class="game-art borough-art" aria-hidden="true"><span class="art-label">SIX SETS OF KEYS. ONE RESTLESS CITY.</span><canvas id="borough-preview" width="720" height="480"></canvas><span class="art-caption"><span class="small-dot"></span> TAKE THE LONG WAY HOME</span></div>
+          <div class="game-details"><div class="game-meta"><span class="pill">CITY DRIVING ARCADE</span><span class="game-number">NO. 004</span></div><div><h3>Borough<br>Rush<span class="title-dot">.</span></h3><p class="game-description">Lose the tail. Catch a fare. Make the next stop. Six ways to drive a city that never slows down.</p></div><div class="game-facts"><span>1 player</span><span>WASD &amp; touch</span><span>6 vehicles</span></div><button id="borough-play-button" class="button primary">Let's drive <svg class="action-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12"/></svg></button><p class="play-note">A whole city. Your set of keys.</p></div>
         </article>
         <div class="collection-note"><span class="plus-mark" aria-hidden="true">+</span><div><strong>A small arcade, with room to grow.</strong><p>More games will find a home here. There’s always room for one more.</p></div><svg class="note-arrow action-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12"/></svg></div>
       </section>
@@ -139,6 +144,7 @@
         <dialog id="worm-help-dialog" class="worm-dialog" aria-labelledby="worm-help-title"><div class="worm-dialog-top"><span class="worm-overline">DU DARFST DIR ZEIT LASSEN</span><button data-close-worm-dialog aria-label="Spielhilfe schließen">×</button></div><h2 id="worm-help-title">Ein kleiner Wegweiser<span>.</span></h2><div class="worm-help-content"><p><strong>Graben:</strong> Pfeiltasten oder WASD bewegen dich ein Feld. Du kannst auch die Richtungsknöpfe drücken oder ein direkt benachbartes Feld antippen. Nach oben geht es durch deine alten Gänge zurück.</p><p><strong>Herzen:</strong> Jedes Herz lässt eine dauerhafte Blüte, einen Kristall, Lichtwesen oder eine Zauberranke wachsen. Schmuck und andere Funde landen in der Schatzkammer (Taste T).</p><p><strong>Schlüsselkammern ab 18 m:</strong> Ein goldener Schlüssel liegt zwei Felder über dem Tor. Besondere Tore brauchen das passende Mondmedaillon, den Sternenstein oder den Rosenschuh – ebenfalls in der Nähe oberhalb. Solche besonderen Fundstücke behältst du.</p><p><strong>Felsen:</strong> Schiebe sie in freie Gänge. In den Kammern kannst du den Fels seitlich oder nach unten aus dem Weg schieben. Mit U oder dem gebogenen Pfeil machst du einen Schritt rückgängig.</p><p><strong>Gefahren ab 52 m:</strong> Schlummerpilze wechseln in drei Zügen ihren Zustand. Goldene Ringe warnen vor dem nächsten Pusten, rosa Ringe zeigen eine aktive Wolke. Brüchiger Boden hält nur kurz: gehe gleich weiter.</p><p><strong>Noch tiefer:</strong> Höhlenwesen bewegen sich erst mit deinem Zug; der kleine Ring zeigt ihren nächsten Schritt. Deckensteine kündigen sich mit einer goldenen Markierung an. Mit der Leertaste oder der Uhr wartest du einen Zug.</p><p><strong>Geborgen bleiben:</strong> Blumenlampen sind sichere Lichtplätze. Bei einem Missgeschick bringt dich die Welt dorthin zurück. Deine Schätze bleiben erhalten. Das Häuschen bringt dich jederzeit zurück zur friedlichen Blumenwiese.</p><p><strong>Deine Welt:</strong> Gänge, Funde und Zauber werden automatisch gespeichert. Sie sind beim nächsten Besuch wieder da. Mit Escape kehrst du zur Arcade zurück.</p></div><button data-close-worm-dialog class="worm-primary">Ich bin bereit zum Staunen <span aria-hidden="true">→</span></button></dialog>
         <dialog id="worm-reset-dialog" class="worm-dialog worm-reset-dialog" aria-labelledby="worm-reset-title"><div class="worm-dialog-top"><span class="worm-overline">EIN NEUES KAPITEL</span><button data-close-worm-dialog aria-label="Neue Welt abbrechen">×</button></div><h2 id="worm-reset-title">Eine neue Welt beginnen?</h2><p class="worm-dialog-intro">Deine bisherigen Gänge, Weltwunder und gesammelten Schätze werden durch ein neues Abenteuer ersetzt.</p><div class="worm-reset-actions"><button data-close-worm-dialog class="worm-small-button">Meine Welt behalten</button><button id="worm-confirm-new" class="worm-primary">Neu beginnen</button></div></dialog>
       </section>
+      <section id="borough-screen" hidden aria-labelledby="borough-title"></section>
       <noscript><p class="noscript">Enable JavaScript in your browser to play the arcade games.</p></noscript>
     </main>
     <footer class="site-footer"><span>Made for a little downtime.</span><span class="footer-right">EST. 2026 <span class="footer-star" aria-hidden="true">✳</span> PLAY FOR THE FUN OF IT.</span></footer>

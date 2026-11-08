@@ -1,10 +1,10 @@
 # Georg's Arcade
 
-A static JavaScript arcade for GitHub Pages. The homepage offers three games: classic-style Pac-Man, Dino Run with Auto mode, and the German-language magical exploration game Wurm & Wunder.
+A static JavaScript arcade for GitHub Pages. The homepage offers four games: classic-style Pac-Man, Dino Run with Auto mode, the German-language magical exploration game Wurm & Wunder, and Borough Rush, a city driving arcade with six vehicle roles.
 
 ## Play
 
-Open **https://georg-aures.github.io/pages-repo/** and choose **Let's play** for Pac-Man or **Let's run** for Dino Run. Browser Back, Escape, or **All games** returns to the collection. Switching games stops the previous game's simulation. Both games pause when the browser loses focus.
+Open **https://georg-aures.github.io/pages-repo/** and choose **Let's play** for Pac-Man or **Let's run** for Dino Run. Browser Back, Escape, or **All games** returns to the collection. Choose **Let's drive** for Borough Rush. Switching games stops the previous game's simulation. The real-time games pause when the browser loses focus.
 
 ### Pac-Man
 
@@ -29,7 +29,7 @@ Direct link: **https://georg-aures.github.io/pages-repo/#dino**.
 
 Jump over single cacti and clusters. Birds appear after fifteen seconds; duck under low birds or stay on the ground beneath high birds. Score increases with distance and speed rises gradually to a cap. On smaller screens, the maximum speed preserves visible reaction time. A collision ends the current run.
 
-Pac-Man and Dino Run store separate personal bests in the current browser. Sound is shared across the arcade, starts muted, and can be enabled with the music-note button. All three games also run when browser storage is unavailable. There is no server or public leaderboard.
+Pac-Man and Dino Run store separate personal bests in the current browser. Sound is shared across the arcade, starts muted, and can be enabled with the music-note button. All four games also run when browser storage is unavailable. There is no server or public leaderboard.
 
 ### Wurm & Wunder
 
@@ -49,6 +49,34 @@ A cozy, turn-based digging adventure with original vector artwork. The world ext
 - **Save:** exploration, inventory, opened gates, moved rocks, checkpoints, and world magic are saved automatically under `georg-arcade-worm-v1`. Reopening the game resumes the same world. If browser storage is blocked or full, a visible note explains that the current world remains in the open tab. New World requires confirmation before replacing the existing adventure.
 
 All Wurm & Wunder interface text is German. The renderer uses the same original worm, treasure, flower, and mushroom artwork in the game, collection, and arcade card. It respects reduced-motion preferences and needs no downloaded image assets.
+
+### Borough Rush
+
+Direct link: **https://georg-aures.github.io/pages-repo/#borough**.
+
+A nonviolent, overhead driving arcade with original Canvas artwork, a fixed handcrafted street plan, changing jobs and traffic, and English text. Crown Island, West Docks and the East Boroughs are connected by six bridges. Crown Park and three narrow alleys make route knowledge useful. The other games retain their own rules and saves.
+
+Choose any of six vehicles, then **On duty** or **Free Drive**. Each role has a briefing and its own acceleration, speed and turning radius:
+
+- **The Getaway:** drive a sporty convertible. Break police line of sight and stay hidden for ten seconds from each cruiser. Being held stopped near police for four seconds ends the pursuit.
+- **Hot Pursuit:** drive an American police cruiser. Get ahead of the red bank robber car and hold it stopped for three seconds before it reaches its escape point. E toggles the siren; nearby traffic yields.
+- **First Response:** drive a fire engine. Park at the marked hydrant and press E to connect. Aim with the mouse and hold its button to extinguish five hotspots, or drag over them on a touchscreen. Moving disconnects the hose. Three incidents make a shift; a timed-out incident is handed to another crew and counts as a failure.
+- **Clean Sweep:** drive an orange garbage truck. Align with the arrow inside the bay, stop and press E. Stay still for five seconds while two workers collect three bins. Nine collection points complete the route.
+- **On the Line:** drive a city bus through eight stops. Align, stop and press E to open the doors. Boarding takes four seconds; early arrivals wait for their scheduled departure. Arrival time determines the punctuality bonus.
+- **Fare Game:** drive a yellow taxi. Stop and press E to collect a customer, then repeat at the marked destination. Customers provide comic commentary; fast, clean deliveries earn tips.
+
+Bus, garbage and taxi jobs award a smaller bonus when late and continue. Service shifts last up to six minutes; pursuits have clear win/loss results. All vehicle contact is forgiving, with lost momentum and a small score deduction rather than damage or injury. Pedestrians stay on sidewalks and do not participate in collisions. Traffic observes simple signal cycles and following distances.
+
+- **Drive:** W accelerates, S brakes then reverses, A/D steer relative to the vehicle. Arrow keys also work. Space is the handbrake.
+- **Action:** E performs the current job action or switches the police siren.
+- **Map:** M or the Map button pauses and opens the street atlas. The minimap, route line and edge arrow provide navigation while driving.
+- **Pause/help:** P, Escape, Pause or ?. Leaving the tab pauses the game and clears held controls.
+- **Roadside assist:** R or the Pause menu returns the car to its last good road position for 50 points.
+- **Touch:** hold steering and gas/brake buttons together; tap Action when stopped. Touch cancellation releases the relevant control. For firefighting, connect first, then drag on the flames.
+- **Free Drive:** no clock or missions. Switch among all six vehicles in the Pause menu. Vehicle switching stops the car without changing its location.
+- **Results/save:** each role has a score, medal and personal best stored under `georg-arcade-borough-v1`. Blocked or full storage does not prevent play. In-progress shifts are not saved.
+
+`borough-city.js` owns the fixed map and connected routing graph; `borough-engine.js` owns driving, traffic and missions without DOM dependencies; `borough-renderer.js` draws original city and vehicle artwork with a bounded chunk cache; `borough.js` and `borough.css` provide the isolated responsive interface. No assets, framework, server or build step are required.
 
 ## Run locally
 
@@ -77,6 +105,7 @@ The site files are in the repository root. In **Settings → Pages**, use **Depl
 - `worm-engine.js` — deterministic terrain, rooms, treasure, heart magic, turn-based hazards, undo, and saved-world rules.
 - `worm-icons.js` and `worm-renderer.js` — original shared vector artwork, depth palettes, connected tunnels, camera, and decorative effects.
 - `worm.js` and `worm.css` — German interface, keyboard/touch controls, collection and help dialogs, persistence, and responsive magical presentation.
+- `tests/borough.test.js` — street connectivity, all six roles, service timing and interruption, chase outcomes, fire targeting, traffic, collisions, pause and Free Drive.
 - `app.js` — Pac-Man renderer and controls, game routing, shared animation loop, and sound.
 - `tests/engine.test.js`, `tests/dino.test.js`, `tests/dino-auto.test.js`, and `tests/worm.test.js` — game-rule regression tests, including long automatic runs, manual/automatic handovers, saved worlds, and solvable treasure chambers.
 
