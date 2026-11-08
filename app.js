@@ -1,6 +1,7 @@
 import { PacmanGame, MAZE, DIRECTIONS } from './engine.js';
 import { DinoController, drawDinoPreview } from './dino.js';
 import { WormController } from './worm.js';
+import { BoroughController } from './borough.js?v=2';
 import { drawWormPreview } from './worm-renderer.js';
 
 const $ = id => document.getElementById(id);
@@ -27,6 +28,7 @@ let lastGame = 'pacman';
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const dino = new DinoController({ sound, unlockAudio });
 const worm = new WormController({ sound, unlockAudio });
+const borough = new BoroughController({ sound, unlockAudio });
 
 function sound(event) {
   if (!soundEnabled || !audioContext || audioContext.state !== 'running') return;
@@ -244,6 +246,7 @@ function updateHud() {
 }
 
 function startGame() {
+  borough.stop();
   dino.stop();
   worm.stop();
   lastGame = 'pacman';
@@ -270,7 +273,7 @@ function returnToLobby() {
   $('game-screen').hidden = true;
   document.body.classList.remove('game-active');
   document.title = "Georg's Arcade — Play a classic";
-  $(({dino:'dino-play-button',wurm:'worm-play-button'})[lastGame] || 'play-button').focus({ preventScroll: true });
+  $(({dino:'dino-play-button',wurm:'worm-play-button',borough:'borough-play-button'})[lastGame] || 'play-button').focus({ preventScroll: true });
 }
 
 function togglePause() {
@@ -282,6 +285,7 @@ function togglePause() {
 }
 
 function route() {
+  if (location.hash !== '#borough') borough.stop();
   if (location.hash === '#pacman') startGame();
   else if (location.hash === '#dino') {
     worm.stop();
@@ -299,6 +303,15 @@ function route() {
     $('lobby').hidden = true;
     $('game-screen').hidden = true;
     worm.start();
+  } else if (location.hash === '#borough') {
+    dino.stop();
+    worm.stop();
+    active = false;
+    game = null;
+    lastGame = 'borough';
+    $('lobby').hidden = true;
+    $('game-screen').hidden = true;
+    borough.start();
   } else {
     dino.stop();
     worm.stop();
@@ -314,6 +327,7 @@ function navigateToGame(name) {
 $('play-button').addEventListener('click', () => navigateToGame('pacman'));
 $('dino-play-button').addEventListener('click', () => navigateToGame('dino'));
 $('worm-play-button').addEventListener('click', () => navigateToGame('wurm'));
+$('borough-play-button').addEventListener('click', () => navigateToGame('borough'));
 $('back-button').addEventListener('click', () => { location.hash = ''; });
 $('pause-button').addEventListener('click', togglePause);
 $('restart-button').addEventListener('click', startGame);
@@ -376,6 +390,7 @@ function frame(time) {
   requestAnimationFrame(frame);
   dino.frame(time);
   worm.frame(time);
+  borough.frame(time);
   if (!active || !game) { lastTime = 0; return; }
   const dt = lastTime ? Math.min((time - lastTime) / 1000, 0.05) : 0;
   lastTime = time;
@@ -392,5 +407,5 @@ render($('preview').getContext('2d'), previewGame, 0, true);
 drawDinoPreview($('dino-preview'));
 drawWormPreview($('worm-preview'));
 updateSoundButton();
-if (['#pacman', '#dino', '#wurm'].includes(location.hash)) route();
+if (['#pacman', '#dino', '#wurm', '#borough'].includes(location.hash)) route();
 requestAnimationFrame(frame);
