@@ -10,3 +10,72 @@
 button,a{touch-action:manipulation}.dpad button{touch-action:none}
 @media(max-width:650px){.game-active .site-header{height:64px}.game-active .game-heading{margin:14px 0 12px}.game-active .scoreboard{padding-top:12px;padding-bottom:9px}.game-active .dpad{margin-top:10px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* Dino Run shares the arcade shell, with a paper-colored desert of its own. */
+.game-card + .game-card { margin-top: 20px; }
+.dino-card, .dino-card .game-art { min-height: 370px; }
+.dino-art { background: #e9e8dc; }
+.dino-art:after { background: linear-gradient(#e9e8dc 2%, transparent 28%, transparent 75%, #e9e8dc 100%); }
+.dino-art .art-label, .dino-art .art-caption { color: #6c755e; }
+.dino-art .small-dot { background: #5b6c42; }
+.dino-art canvas { width: 100%; height: auto; transform: none; filter: none; opacity: 1; }
+.dino-title-row { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin: 10px 0 29px; }
+.dino-title-row h1 { font: 500 49px/1.1 var(--display); letter-spacing: -2px; }
+.dino-title-row p { color: var(--muted); font-size: 14px; margin-top: 12px; }
+.dino-cabinet { width: 100%; }
+.dino-cabinet .scoreboard { padding: 22px 30px; }
+.dino-board-wrap { position: relative; }
+#dino-board { width: 100%; height: auto; display: block; touch-action: none; outline-offset: -3px; }
+.dino-footer-note { font-size: 8px; letter-spacing: 1.3px; color: #808581; }
+#dino-status { color: var(--accent); font-size: 10px; letter-spacing: .2px; }
+.dino-toolbar { display: flex; justify-content: space-between; gap: 30px; margin-top: 20px; }
+.dino-inputs { display: flex; flex: 1; gap: 10px; max-width: 480px; }
+.dino-inputs .button { flex: 1; justify-content: space-between; gap: 15px; padding: 0 20px; min-height: 47px; touch-action: none; user-select: none; }
+.dino-inputs .primary:hover { transform: none; }
+.dino-inputs .input-key { margin-left: 8px; font-size: 8px; letter-spacing: 1px; font-weight: 400; opacity: .65; }
+.dino-inputs [aria-pressed=true] { color: #16190a; background: var(--accent); }
+.dino-actions { margin-top: 0; min-width: 235px; }
+.dino-actions .button, .dino-actions .icon-button { min-height: 47px; }
+.dino-control-note { margin-top: 14px; font-size: 11px; color: #85878a; line-height: 1.6; }
+.desktop-dino-note { float: right; }
+.dino-instructions { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 36px; margin-top: 35px; padding-top: 27px; border-top: 1px solid var(--line); }
+.dino-instructions .eyebrow { font-size: 8px; letter-spacing: 1px; }
+.dino-instructions h2 { font-size: 14px; font-weight: 500; margin: 12px 0 9px; }
+.dino-instructions p { color: #8c8d90; font-size: 12px; line-height: 1.8; max-width: 270px; }
+#dino-overlay .overlay-panel { padding: 23px; }
+#dino-overlay h2 { margin: 9px 0; }
+@media (max-width: 850px) {
+  .dino-toolbar { gap: 18px; }
+  .dino-inputs .button { padding: 0 13px; gap: 7px; }
+  .dino-actions { min-width: 200px; }
+  .dino-inputs .input-key { font-size: 7px; }
+  .dino-instructions { gap: 22px; }
+}
+@media (max-width: 650px) {
+  .dino-card, .dino-card .game-art { min-height: 260px; }
+  .dino-card .game-details h3 { margin-top: 22px; }
+  .dino-title-row { margin: 19px 0 23px; }
+  .dino-title-row h1 { font-size: 38px; }
+  .dino-title-row p { font-size: 12px; margin-top: 9px; }
+  .dino-title-row > .pill { display: none; }
+  .game-active .dino-cabinet .scoreboard { padding: 17px; }
+  .dino-cabinet .cabinet-footer { height: 39px; padding: 0 14px; }
+  .dino-footer-note { font-size: 6px; letter-spacing: .6px; }
+  #dino-status { font-size: 8px; }
+  .dino-toolbar { flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+  .dino-inputs { flex-basis: 100%; max-width: none; }
+  .dino-inputs .button { min-height: 49px; padding: 0 17px; }
+  .dino-inputs .input-key { font-size: 7px; }
+  .dino-actions { margin-top: 0; }
+  .dino-actions .button, .dino-actions .icon-button { min-height: 42px; }
+  .dino-control-note { font-size: 10px; margin-top: 12px; }
+  .desktop-dino-note { display: none; }
+  .dino-instructions { grid-template-columns: 1fr; gap: 20px; margin-top: 26px; padding-top: 22px; }
+  .dino-instructions h2 { font-size: 13px; margin-top: 8px; }
+  .dino-instructions p { font-size: 11px; max-width: none; }
+  #dino-overlay .overlay-panel { padding: 13px 18px; max-width: 290px; }
+  #dino-overlay .eyebrow { display: none; }
+  #dino-overlay h2 { font-size: 27px; margin: 4px 0 7px; }
+  #dino-overlay p { font-size: 11px; line-height: 1.45; margin-bottom: 12px; }
+  #dino-overlay .button { min-height: 38px; font-size: 12px; }
+}
