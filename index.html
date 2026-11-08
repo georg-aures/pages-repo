@@ -1,1 +1,86 @@
-Hello Casa
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101113">
+  <meta name="description" content="A small home for the classics. Pick a game, take a break, and chase your next high score.">
+  <title>Georg's Arcade — Play a classic</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23101113'/%3E%3Cpath d='M83 28A40 40 0 1 0 83 72L51 50Z' fill='%23edfa78'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <div class="site-shell">
+    <header class="site-header">
+      <a class="brand" href="#" aria-label="Georg's Arcade home">
+        <svg class="brand-icon" width="29" height="29" viewBox="0 0 32 32" aria-hidden="true"><path d="M28 7a15 15 0 1 0 0 18l-12-9Z" fill="currentColor"/><circle cx="19" cy="8" r="1.6" fill="#101113"/></svg>
+        <span>georg<span class="muted"> / </span>arcade</span>
+      </a>
+      <span class="header-note"><span class="status-dot"></span> A good time, anytime.</span>
+    </header>
+
+    <main>
+      <section id="lobby" aria-labelledby="lobby-title">
+        <div class="intro">
+          <span class="eyebrow"><span class="tiny-star">✳</span> SMALL GAMES. BIG NOSTALGIA.</span>
+          <h1 id="lobby-title" tabindex="-1">Pick a game.<br>Make a <span>little escape.</span></h1>
+          <p>A few minutes, a familiar challenge, and one more try.<br class="desktop-break"> Your next high score starts here.</p>
+        </div>
+
+        <div class="section-label"><h2>The collection</h2><span>01 GAME & COUNTING</span></div>
+        <article class="game-card">
+          <div class="game-art" aria-hidden="true">
+            <span class="art-label">THE ORIGINAL MAZE CHASE</span>
+            <canvas id="preview" width="560" height="620"></canvas>
+            <span class="art-caption"><span class="small-dot"></span> INSERT A LITTLE FREE TIME</span>
+          </div>
+          <div class="game-details">
+            <div class="game-meta"><span class="pill">ARCADE CLASSIC</span><span class="game-number">NO. 001</span></div>
+            <div>
+              <h3>Pac-Man<span class="title-dot">.</span></h3>
+              <p class="game-description">The maze. The ghosts. The just-one-more-game feeling. Collect every dot and keep a step ahead.</p>
+            </div>
+            <div class="game-facts"><span><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="6" r="3"/><path d="M4 18v-3a6 6 0 0 1 12 0v3"/></svg>1 player</span><span><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="M5 8h10M5 12h4m3 0h3"/></svg>Keyboard & touch</span></div>
+            <button id="play-button" class="button primary">Let's play <svg class="action-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12"/></svg></button>
+            <p class="play-note">No download. No coins. Just play.</p>
+          </div>
+        </article>
+        <div class="collection-note"><span class="plus-mark" aria-hidden="true">+</span><div><strong>A small arcade, with room to grow.</strong><p>More games will find a home here. For now, the maze is calling.</p></div><svg class="note-arrow action-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12"/></svg></div>
+      </section>
+
+      <section id="game-screen" hidden aria-labelledby="game-title">
+        <div class="game-heading"><button id="back-button" class="text-button"><span aria-hidden="true">←</span> All games</button><span class="eyebrow">NO. 001 / ARCADE CLASSIC</span></div>
+        <div class="play-layout">
+          <div class="cabinet">
+            <div class="scoreboard" aria-label="Game statistics">
+              <div><span>SCORE</span><strong id="score">000000</strong></div>
+              <div class="high-score"><span>PERSONAL BEST</span><strong id="best">000000</strong></div>
+              <div><span>LEVEL</span><strong id="level">01</strong></div>
+            </div>
+            <div class="board-wrap">
+              <canvas id="board" width="560" height="620" tabindex="0" role="img" aria-label="Pac-Man maze. Use arrow keys or W A S D to move. Press P to pause.">Use a modern browser with Canvas support to play.</canvas>
+              <div id="board-overlay" class="board-overlay" hidden>
+                <div class="overlay-panel"><span id="overlay-kicker" class="eyebrow">TAKE YOUR TIME</span><h2 id="overlay-title">Paused</h2><p id="overlay-description">The maze can wait.</p><button id="overlay-button" class="button primary">Keep playing <span aria-hidden="true">→</span></button></div>
+              </div>
+            </div>
+            <div class="cabinet-footer"><span id="lives" aria-label="3 lives remaining"></span><span id="game-status" role="status" aria-live="polite">Ready!</span><span class="cabinet-label">GOOD LUCK, PLAYER ONE</span></div>
+          </div>
+          <aside class="game-sidebar">
+            <span class="pill">THE CLASSICS NEVER GET OLD</span>
+            <h1 id="game-title">Pac-Man<span class="title-dot">.</span></h1>
+            <p class="sidebar-intro">A little focus.<br>A lot of dots.</p>
+            <div class="control-panel"><h2>How to play</h2><div class="instruction"><span class="instruction-icon dots" aria-hidden="true">···</span><p>Clear the maze.<br><span>Every little dot counts.</span></p></div><div class="instruction"><span class="instruction-icon power-dot" aria-hidden="true">●</span><p>Turn the tables.<br><span>Power pellets let you eat ghosts.</span></p></div><div class="instruction"><svg class="instruction-icon ghost-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V10a8 8 0 0 1 16 0v11l-4-3-4 3-4-3Z" fill="currentColor"/><circle cx="9" cy="10" r="1.5" fill="#101113"/><circle cx="15" cy="10" r="1.5" fill="#101113"/></svg><p>Keep your distance.<br><span>Three lives. Four persistent ghosts.</span></p></div></div>
+            <div class="keyboard-help"><span class="key">↑</span><span class="key">←</span><span class="key">↓</span><span class="key">→</span><span>or WASD to move</span><p><span class="key">P</span> / <span class="key">SPACE</span> pause <span class="key">ESC</span> all games</p></div>
+            <div class="game-actions"><button id="pause-button" class="button secondary"><svg class="control-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 4v12M13 4v12"/></svg><span>Pause</span></button><button id="restart-button" class="icon-button" aria-label="Restart game" title="Restart game"><svg class="control-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M15 5a7 7 0 1 0 2 5M15 1v5h-5"/></svg></button><button id="sound-button" class="icon-button" aria-label="Turn sound on" aria-pressed="false" title="Turn sound on"><svg class="control-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M8 14V5l8-2v9M8 7l8-2"/><ellipse cx="5.5" cy="14.5" rx="2.5" ry="2"/><ellipse cx="13.5" cy="12.5" rx="2.5" ry="2"/></svg><span class="sound-off">/</span></button></div>
+            <p class="best-note">Your best score stays in this browser.</p>
+          </aside>
+        </div>
+        <div class="touch-controls" aria-label="Touch game controls"><span class="touch-hint">Tap a direction or swipe the maze.</span><div class="dpad"><button data-direction="up" aria-label="Move up">↑</button><button data-direction="left" aria-label="Move left">←</button><span aria-hidden="true">●</span><button data-direction="right" aria-label="Move right">→</button><button data-direction="down" aria-label="Move down">↓</button></div></div>
+      </section>
+      <noscript><p class="noscript">Enable JavaScript in your browser to play the arcade games.</p></noscript>
+    </main>
+    <footer class="site-footer"><span>Made for a little downtime.</span><span class="footer-right">EST. 2026 <span class="footer-star" aria-hidden="true">✳</span> PLAY FOR THE FUN OF IT.</span></footer>
+  </div>
+</body>
+</html>
