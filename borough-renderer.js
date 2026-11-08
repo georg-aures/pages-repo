@@ -1,5 +1,5 @@
-import { CITY, LAND, PARK, ROADS, nodes, BUILDINGS, LANDMARKS, roadAt, nearestNode, route } from './borough-city.js';
-import { VEHICLES, distance } from './borough-engine.js';
+import { CITY, LAND, PARK, ROADS, nodes, BUILDINGS, LANDMARKS, FEATURES, roadAt, roadPosition, navigationRoute, signalGreen } from './borough-city.js?v=2';
+import { VEHICLES, distance } from './borough-engine.js?v=2';
 const TAU = Math.PI * 2;
 const roofs = ['#a19580', '#7d8985', '#b8ab92', '#8b7770', '#6b797e', '#a28c73'];
 function rect(c, color, x, y, w, h) { c.fillStyle = color; c.fillRect(x, y, w, h); }
@@ -18,7 +18,7 @@ function building(c, b) {
   rect(c, '#202c2e60', x, y + h - 7, w, 7);
   c.strokeStyle = '#3b414136'; c.lineWidth = 1;
   for (let row = y + 14; row < y + h - 6; row += 20) { c.beginPath(); c.moveTo(x + 7, row); c.lineTo(x + w - 10, row); c.stroke(); }
-  const units = b.detail > .5 ? 3 : 2;
+  const units = w < 95 || h < 95 ? 1 : b.detail > .5 ? 3 : 2;
   for (let i = 0; i < units; i++) {
     const xx = x + 20 + (i % 2) * Math.max(25, w * .45), yy = y + 22 + Math.floor(i / 2) * 40;
     rect(c, '#343c3d80', xx + 3, yy + 4, 21, 17); rect(c, '#b6b8a5', xx, yy, 20, 15);
@@ -34,14 +34,14 @@ function building(c, b) {
   }
   // Cornice windows and fire escapes read as tiny pixel details from above.
   for (let xx = x + 11; xx < x + w - 6; xx += 17) { rect(c, '#e7c587', xx, y + h - 4, 6, 3); rect(c, '#253a40', xx, y + 2, 6, 2); }
-  if (b.district === 1 && x > 2100 && x < 2400 && y > 2220 && y < 2520) {
+  if (b.landmark === 'terminal') {
     rect(c, '#9c9e8b', x + 9, y + 14, w - 18, h - 30);
     rect(c, '#334f58', x + w * .25, y + 28, w * .5, h - 75);
     rect(c, '#6b999b', x + w * .25 + 4, y + 32, w * .5 - 8, h - 83);
     for (let yy = y + 38; yy < y + h - 50; yy += 18) line(c, '#adc0aa', 2, x + w * .25, yy, x + w * .75, yy);
     line(c, '#adc0aa', 2, x + w / 2, y + 28, x + w / 2, y + h - 47);
     text(c, 'GRAND TERMINAL', x + w / 2, y + h - 18, 9, '#263d45', 'center');
-  } else if (b.district === 1 && x > 1800 && x < 2100 && y > 2820) {
+  } else if (b.landmark === 'cityhall') {
     rect(c, '#d7d0b2', x + 18, y + 18, w - 36, h - 36);
     rect(c, '#858b7d', x + w / 2 - 15, y + h / 2 - 22, 30, 44);
     circle(c, '#e0d7b8', x + w / 2, y + h / 2, 13); circle(c, '#969c84', x + w / 2, y + h / 2, 7);
@@ -65,33 +65,50 @@ function staticCity(c, bounds) {
     rect(c, '#293e40', x, y + 5, 110, 28); rect(c, '#a28c66', x, y, 110, 23);
     for (let xx = x + 5; xx < x + 110; xx += 9) line(c, '#605e4d', 1, xx, y, xx, y + 23);
   }
-  const roads = ROADS.filter(r => overlaps({ x: r.x1 - 60, y: r.y1 - 60, w: r.x2 - r.x1 + 120, h: r.y2 - r.y1 + 120 }, bounds));
-  c.lineCap = 'square';
+  const roads = ROADS.filter(r => overlaps({ x: Math.min(r.x1,r.x2) - 75, y: Math.min(r.y1,r.y2) - 75, w: Math.abs(r.x2-r.x1) + 150, h: Math.abs(r.y2-r.y1) + 150 }, bounds));
+  c.lineCap = 'round';
   for (const r of roads) {
-    const bridge = (r.x1 === 1100 && r.x2 === 1500) || (r.x1 === 2700 && r.x2 === 3200);
-    line(c, bridge ? '#162e39' : '#606965', r.width + 27, r.x1, r.y1 + (bridge ? 8 : 0), r.x2, r.y2 + (bridge ? 8 : 0));
-    line(c, bridge ? '#adad96' : '#b2b09c', r.width + 18, r.x1, r.y1, r.x2, r.y2);
+    line(c, r.bridge ? '#162e39' : '#606965', r.width + 27, r.x1, r.y1 + (r.bridge ? 8 : 0), r.x2, r.y2 + (r.bridge ? 8 : 0));
+    line(c, r.bridge ? '#adad96' : '#b2b09c', r.width + 18, r.x1, r.y1, r.x2, r.y2);
   }
-  for (const r of roads) line(c, '#3b4547', r.width, r.x1, r.y1, r.x2, r.y2);
+  for (const r of roads) line(c, r.width < 55 ? '#4a5050' : '#3b4547', r.width, r.x1, r.y1, r.x2, r.y2);
   for (const r of roads) {
     if (r.width < 50) continue;
+    const length = Math.hypot(r.x2-r.x1,r.y2-r.y1), nx = -(r.y2-r.y1)/length, ny = (r.x2-r.x1)/length;
     c.setLineDash([16, 15]); line(c, '#cab777', 2, r.x1, r.y1, r.x2, r.y2); c.setLineDash([]);
-    if (r.x1 !== r.x2) {
-      line(c, '#a8a89766', 1, r.x1, r.y1 - r.width / 2 + 5, r.x2, r.y1 - r.width / 2 + 5);
-      line(c, '#a8a89766', 1, r.x1, r.y1 + r.width / 2 - 5, r.x2, r.y1 + r.width / 2 - 5);
-    } else {
-      line(c, '#a8a89766', 1, r.x1 - r.width / 2 + 5, r.y1, r.x1 - r.width / 2 + 5, r.y2);
-      line(c, '#a8a89766', 1, r.x1 + r.width / 2 - 5, r.y1, r.x1 + r.width / 2 - 5, r.y2);
+    for (const sign of [-1,1]) {
+      const offset = sign * (r.width/2 - 5);
+      line(c, '#a8a89766', 1, r.x1+nx*offset, r.y1+ny*offset, r.x2+nx*offset, r.y2+ny*offset);
+      if(r.width>=96) { c.setLineDash([10,17]); line(c,'#d4d4b96a',1,r.x1+nx*sign*r.width/4,r.y1+ny*sign*r.width/4,r.x2+nx*sign*r.width/4,r.y2+ny*sign*r.width/4); c.setLineDash([]); }
+    }
+    if (r.diagonal) {
+      c.save(); c.translate((r.x1+r.x2)/2,(r.y1+r.y2)/2); c.rotate(Math.atan2(r.y2-r.y1,r.x2-r.x1));
+      text(c,r.name.toUpperCase(),0,-r.width/2-13,11,'#ddd6b18c','center'); c.restore();
     }
   }
   for (const n of nodes) {
-    if (n.links.length < 3 || !overlaps({ x: n.x - 70, y: n.y - 70, w: 140, h: 140 }, bounds)) continue;
-    rect(c, '#3b4547', n.x - 34, n.y - 34, 68, 68);
-    for (let i = -25; i <= 25; i += 10) {
-      rect(c, '#d2cdb488', n.x + i, n.y - 48, 5, 14); rect(c, '#d2cdb488', n.x + i, n.y + 35, 5, 14);
-      rect(c, '#d2cdb488', n.x - 48, n.y + i, 14, 5); rect(c, '#d2cdb488', n.x + 35, n.y + i, 14, 5);
+    if (n.links.length < 3 || !overlaps({ x: n.x - 90, y: n.y - 90, w: 180, h: 180 }, bounds)) continue;
+    const radius = Math.max(...n.links.map(l=>l.edge.width))/2;
+    circle(c,'#3b4547',n.x,n.y,radius-2);
+    for (const l of n.links) {
+      if(l.edge.width<50 || l.edge.length<100) continue;
+      const next=nodes[l.to], angle=Math.atan2(next.y-n.y,next.x-n.x);
+      c.save();c.translate(n.x,n.y);c.rotate(angle);
+      for(let y=-l.edge.width*.38;y<l.edge.width*.38;y+=10) rect(c,'#d2cdb488',radius+5,y,13,5);
+      c.restore();
     }
-    rect(c, '#35413b', n.x + 42, n.y + 42, 5, 8);
+  }
+  for (const f of FEATURES) {
+    if(!overlaps(f,bounds)) continue;
+    rect(c, f.kind==='garden'?'#657c51':f.kind==='plaza'?'#b8ad8c':'#596661',f.x,f.y,f.w,f.h);
+    if(f.kind==='parking') for(let y=f.y+15;y<f.y+f.h-12;y+=28) {
+      line(c,'#c3bea0',1,f.x+10,y,f.x+62,y);line(c,'#c3bea0',1,f.x+f.w-62,y,f.x+f.w-10,y);
+      if(Math.round(y)%3) {rect(c,'#273c40',f.x+15,y+4,30,15);rect(c,['#a5856c','#aeb29d','#647e8b'][Math.round(y)%3],f.x+18,y+5,24,12);}
+    }
+    if(f.kind==='containers') for(let x=f.x+12;x<f.x+f.w-35;x+=43) for(let y=f.y+12;y<f.y+f.h-50;y+=64){rect(c,'#283b3b',x+4,y+4,34,55);rect(c,['#a66b4b','#6b8b8b','#b2a26e'][Math.round(x+y)%3],x,y,34,55);for(let k=4;k<32;k+=6)line(c,'#202d342f',2,x+k,y+3,x+k,y+51);}
+    if(f.kind==='garden') for(let x=f.x+20;x<f.x+f.w;x+=40)for(let y=f.y+20;y<f.y+f.h;y+=45)tree(c,x,y,12);
+    if(f.kind==='court') {rect(c,'#a77d5f',f.x+14,f.y+14,f.w-28,f.h-28);c.strokeStyle='#ddd1a9';c.lineWidth=2;c.strokeRect(f.x+22,f.y+22,f.w-44,f.h-44);line(c,'#ddd1a9',2,f.x+22,f.y+f.h/2,f.x+f.w-22,f.y+f.h/2);circle(c,'#ddd1a9',f.x+f.w/2,f.y+f.h/2,20);circle(c,'#a77d5f',f.x+f.w/2,f.y+f.h/2,18);}
+    if(f.kind==='plaza'){circle(c,'#506e6b',f.x+f.w/2,f.y+f.h/2,26);circle(c,'#abd0bb',f.x+f.w/2,f.y+f.h/2,18);for(const x of [f.x+20,f.x+f.w-20])for(const y of [f.y+20,f.y+f.h-20])tree(c,x,y,9);}
   }
   BUILDINGS.filter(b => overlaps({ x: b.x, y: b.y, w: b.w + 15, h: b.h + 20 }, bounds)).forEach(b => building(c, b));
   rect(c, '#496348', PARK.x, PARK.y, PARK.w, PARK.h);
@@ -102,8 +119,10 @@ function staticCity(c, bounds) {
   for (const r of roads) {
     if (r.x1 !== r.x2 || r.width < 50) continue;
     for (let y = Math.max(r.y1 + 100, Math.floor(bounds.y / 140) * 140); y < Math.min(r.y2, bounds.y + bounds.h); y += 140) {
-      tree(c, r.x1 - 46, y, 8); rect(c, '#64726a', r.x1 + 44, y - 24, 4, 18); rect(c, '#c8bfa6', r.x1 + 42, y - 28, 8, 5);
-      rect(c, '#384f4d', r.x1 + 44, y + 32, 7, 10);
+      const curb = r.width/2 + 12;
+      if (nodes.some(n => Math.hypot(n.x-r.x1,n.y-y)<90)) continue;
+      tree(c, r.x1 - curb, y, 8); rect(c, '#64726a', r.x1 + curb, y - 24, 4, 18); rect(c, '#c8bfa6', r.x1 + curb - 2, y - 28, 8, 5);
+      rect(c, '#384f4d', r.x1 + curb, y + 32, 7, 10);
     }
   }
 }
@@ -180,14 +199,16 @@ export class BoroughRenderer {
     this.drawRoute(c, g);
     for (const n of nodes) {
       if (n.links.length < 3 || Math.abs(n.x - this.camera.x) > w / this.zoom || Math.abs(n.y - this.camera.y) > h / this.zoom) continue;
-      const green = Math.floor((g.time + n.x / 200) / 6) % 2 === 0;
+      const green = signalGreen(n,g.time,Math.PI/2);
       circle(c, green ? '#a7cc89' : '#ed805a', n.x + 44, n.y + 45, 2.5);
       // People stay on the pavement and have no collision or injury system.
       for (let i = 0; i < 2; i++) { const x = n.x - 47, y = n.y - 75 + i * 100 + Math.sin(g.time * .6 + n.id) * 18; circle(c, '#20323860', x + 2, y + 2, 3); rect(c, i ? '#d7b78b' : '#778ba7', x - 2, y - 3, 4, 7); circle(c, '#d5b797', x, y, 2); }
     }
     for (const car of g.traffic) if (Math.abs(car.x - this.camera.x) < w / this.zoom && Math.abs(car.y - this.camera.y) < h / this.zoom) drawVehicle(c, car, g.time);
     g.pursuers.filter(p => !p.lost).forEach(p => drawVehicle(c, p, g.time));
-    if (g.robber) { drawVehicle(c, g.robber, g.time); this.marker(c, g.robber, '#f0806c', 'TARGET', g.time, reduced); }
+    if (g.robber) { c.strokeStyle='#f0806c44';c.lineWidth=1;c.beginPath();c.arc(g.robber.x,g.robber.y,155,0,TAU);c.stroke(); drawVehicle(c, g.robber, g.time); this.marker(c, g.robber, '#f0806c', g.robber.surrendering?'STOP HERE':'FOLLOW', g.time, reduced); }
+    if(g.garbageSites) for(const site of g.garbageSites) if(!site.collected && site!==g.target && overlaps({x:site.x-40,y:site.y-40,w:80,h:80},bounds)) this.drawBins(c,site);
+    if(g.busStops) for(const stop of g.busStops){rect(c,'#243f43',stop.curbX-3,stop.curbY-18,6,24);rect(c,'#83beb0',stop.curbX-7,stop.curbY-23,14,13);text(c,'B',stop.curbX,stop.curbY-13,9,'#243f43','center');}
     if (g.target && !['police', 'escape'].includes(g.mode)) this.drawJob(c, g, reduced);
     drawVehicle(c, { ...g.player, mode: g.mode, siren: g.siren }, g.time);
     if (g.hose && g.mode === 'fire' && g.state === 'playing') {
@@ -206,13 +227,23 @@ export class BoroughRenderer {
     rect(c, '#14292fe8', w - 103, h - 75, 87, 59); text(c, String(Math.round(Math.abs(g.player.speed) * .32)).padStart(2, '0'), w - 30, h - 38, 27, '#f1e5bc', 'right'); text(c, 'MPH', w - 30, h - 23, 9, '#a8b5aa', 'right');
     const road = roadAt(g.player); rect(c, '#182a30cf', w / 2 - 115, h - 31, 230, 23); text(c, road.name.toUpperCase(), w / 2, h - 15, 9, '#d2d4b9', 'center');
   }
+  updatePath(g) {
+    const target=g.destination; if(!target || g.mode==='escape'){this.path=[];return;}
+    const a=roadPosition(g.player,g.player.angle), b=roadPosition(target,g.mode==='bus'?target.angle:undefined);
+    const key=`${a.edge.id}:${b.edge.id}:${g.routeVersion}:${Math.round(g.player.angle*2)}`;
+    if(this.pathKey!==key || this.path.length<4){this.pathKey=key;this.path=navigationRoute(g.player,target,{arrivalAngle:g.mode==='bus'?target.angle:undefined}).points;}
+    if(this.path.length>=4){this.path[0]={x:g.player.x,y:g.player.y};this.path[1]=a;this.path[this.path.length-2]=b;this.path[this.path.length-1]={x:target.x,y:target.y};}
+  }
   drawRoute(c, g) {
-    const target = g.destination; if (!target || g.mode === 'escape') return;
-    const source = nearestNode(g.player).id, end = nearestNode(target).id;
-    const key = `${source}:${end}:${g.routeVersion}`;
-    if (this.pathKey !== key) { this.pathKey = key; this.path = route(source, end).map(id => nodes[id]); }
-    c.strokeStyle = '#f1cd6e9e'; c.lineWidth = 4; c.lineJoin = 'round'; c.setLineDash([9, 9]); c.beginPath();
-    c.moveTo(g.player.x, g.player.y); this.path.forEach(p => c.lineTo(p.x, p.y)); c.lineTo(target.x, target.y); c.stroke(); c.setLineDash([]);
+    this.updatePath(g); if(!this.path?.length) return;
+    if(g.busLine){c.strokeStyle='#8dc5b33e';c.lineWidth=7;c.beginPath();g.busLine.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.stroke();}
+    c.strokeStyle='#f1cd6eac';c.lineWidth=4;c.lineJoin='round';c.setLineDash([9,9]);c.beginPath();
+    this.path.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.stroke();c.setLineDash([]);
+  }
+  drawBins(c,t,progress=0){
+    c.save();c.translate(t.curbX,t.curbY);c.rotate(t.angle);
+    for(let i=0;i<3;i++){if(progress>(i+1)/3)continue;rect(c,'#213f39',-29+i*22,-5,14,12);rect(c,'#90aa70',-30+i*22,-6,16,4);}
+    c.restore();
   }
   marker(c, p, color, label, time, reduced) {
     const lift = reduced ? 0 : Math.sin(time * 3) * 3;
@@ -225,11 +256,7 @@ export class BoroughRenderer {
     c.fillStyle = '#f7d78044'; c.fillRect(-35, -16, 70, 32); c.fillStyle = '#f4ce76'; c.beginPath(); c.moveTo(28, 0); c.lineTo(14, -6); c.lineTo(14, 6); c.fill(); c.restore();
     this.marker(c, { x: t.curbX, y: t.curbY }, '#f2d27b', g.mode === 'taxi' ? g.taxiStage.toUpperCase() : g.mode === 'fire' ? 'HYDRANT' : 'STOP', g.time, reduced);
     if (g.mode === 'garbage') {
-      for (let i = 0; i < 3; i++) {
-        const progress = g.service ? g.service.elapsed / g.service.duration : 0;
-        if (progress > (i + 1) / 3) continue;
-        rect(c, '#213f39', t.curbX - 5, t.curbY - 25 + i * 21, 12, 15); rect(c, '#7b9b6c', t.curbX - 6, t.curbY - 27 + i * 21, 14, 4);
-      }
+      this.drawBins(c,t,g.service?g.service.elapsed/g.service.duration:0);
       if (g.service) for (let i = 0; i < 2; i++) {
         const f = (Math.sin(g.service.elapsed * 3 + i * Math.PI) + 1) / 2;
         const x = g.player.x * (1 - f) + t.curbX * f, y = g.player.y * (1 - f) + (t.curbY + i * 18) * f;
@@ -268,16 +295,24 @@ export class BoroughRenderer {
     c.translate(x + (w - CITY.width * scale) / 2, y + (h - CITY.height * scale) / 2); c.scale(scale, scale);
     rect(c, '#244551', 0, 0, CITY.width, CITY.height);
     LAND.forEach(l => rect(c, '#68766b', l.x, l.y, l.w, l.h)); rect(c, '#779260', PARK.x, PARK.y, PARK.w, PARK.h);
-    ROADS.forEach(r => line(c, '#293e45', full ? 32 : 38, r.x1, r.y1, r.x2, r.y2));
+    if(full) BUILDINGS.forEach(b=>rect(c,roofs[b.palette]+'77',b.x,b.y,b.w,b.h));
+    FEATURES.forEach(f=>rect(c,f.kind==='garden'?'#829766':'#a49b7a',f.x,f.y,f.w,f.h));
+    ROADS.forEach(r => line(c, r.bridge?'#a5ad97':'#293e45', Math.max(20,r.width*.58), r.x1, r.y1, r.x2, r.y2));
+    if(g.busLine){c.strokeStyle='#a2d5c7';c.lineWidth=14;c.beginPath();g.busLine.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.stroke();}
+    if(g.busStops)g.busStops.forEach(s=>circle(c,'#b8e4cd',s.x,s.y,(full?3:1.5)/scale));
+    if(g.garbageSites)g.garbageSites.filter(s=>!s.collected).forEach(s=>{const size=(full?4:1.6)/scale;rect(c,'#e0bd73',s.x-size,s.y-size,size*2,size*2);});
     if (this.path && g.destination && !g.free) { c.strokeStyle = '#f3cf78'; c.lineWidth = full ? 18 : 24; c.beginPath(); this.path.forEach((p, i) => i ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y)); c.lineTo(g.destination.x, g.destination.y); c.stroke(); }
     g.pursuers.filter(p => !p.lost).forEach(p => circle(c, '#9ac9e1', p.x, p.y, 4 / scale));
     if (g.robber) circle(c, '#e97e65', g.robber.x, g.robber.y, 4 / scale);
     if (g.target) { circle(c, '#f6d07b', g.target.x, g.target.y, 5 / scale); circle(c, '#4b4840', g.target.x, g.target.y, 2 / scale); }
     c.save(); c.translate(g.player.x, g.player.y); c.rotate(g.player.angle); c.fillStyle = '#fff6c8'; c.beginPath(); c.moveTo(7 / scale, 0); c.lineTo(-4 / scale, -4 / scale); c.lineTo(-2 / scale, 0); c.lineTo(-4 / scale, 4 / scale); c.fill(); c.restore();
+    if(full){for(const r of ROADS.filter(r=>r.diagonal)){c.save();c.translate((r.x1+r.x2)/2,(r.y1+r.y2)/2);c.rotate(Math.atan2(r.y2-r.y1,r.x2-r.x1));text(c,r.name.toUpperCase(),0,-32,8/scale,'#e6d4a3','center');c.restore();}}
     if (full) LANDMARKS.forEach(l => text(c, l.name, l.x, l.y, 10 / scale, '#ebe2b8', 'center'));
     c.restore(); text(c, 'N ↑', x + w - 5, y + 13, 9, '#f2e0ae', 'right'); if (!full) text(c, 'M / CITY MAP', x + 6, y + h - 6, 8, '#e3d9b0');
   }
+  mapWorld(canvas,clientX,clientY){const box=canvas.getBoundingClientRect(),scale=Math.min(canvas.width/CITY.width,canvas.height/CITY.height);return {x:((clientX-box.left)*canvas.width/box.width-(canvas.width-CITY.width*scale)/2)/scale,y:((clientY-box.top)*canvas.height/box.height-(canvas.height-CITY.height*scale)/2)/scale};}
   fullMap(canvas, game) {
+    if(game.destination) this.updatePath(game);
     const c = canvas.getContext('2d'); c.clearRect(0, 0, canvas.width, canvas.height); this.drawMinimap(c, game, 0, 0, canvas.width, canvas.height, true);
   }
 }

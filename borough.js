@@ -1,5 +1,5 @@
-import { BoroughGame, VEHICLES } from './borough-engine.js';
-import { BoroughRenderer, drawGarageVehicle, drawBoroughPreview } from './borough-renderer.js';
+import { BoroughGame, VEHICLES } from './borough-engine.js?v=2';
+import { BoroughRenderer, drawGarageVehicle, drawBoroughPreview } from './borough-renderer.js?v=2';
 const $ = id => document.getElementById(id);
 const formatTime = seconds => { const n = Math.max(0, Math.ceil(seconds)); return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`; };
 const setText = (id, value) => { const el = $(id); if (el.textContent !== String(value)) el.textContent = value; };
@@ -50,6 +50,7 @@ export class BoroughController {
       if (action === 'resume') this.resume();
       if (action === 'garage') this.garage();
       if (action === 'retry') this.startRun();
+      if (action === 'end-route') { this.game.finish(true, 'Collection report'); this.results(); }
       if (action === 'rescue') { this.game.rescue(); this.resume(); }
       if (action === 'switch') { this.game.changeVehicle(button.dataset.mode); this.selected = this.game.mode; setText('borough-role', this.game.spec.name); this.resume(); }
     });
@@ -126,12 +127,23 @@ export class BoroughController {
   resume() { this.closeDialog(); if (this.game) this.game.paused = false; this.clearInput(); this.lastTime = 0; $('borough-board').focus({ preventScroll: true }); }
   pause() {
     if (!this.game || this.game.state !== 'playing') return;
-    this.showDialog(`<span class="br-kicker">THE CITY CAN WAIT</span><h2 id="borough-dialog-title">Taking a breather.</h2><p>${this.game.free ? 'Change your ride or keep exploring.' : 'Your mission clock is paused.'}</p><button class="br-primary" data-br-dialog="resume">Back to the city <span>↗</span></button>${this.game.free ? `<div class="br-switch">${Object.entries(VEHICLES).map(([mode, v]) => `<button data-br-dialog="switch" data-mode="${mode}">${v.vehicle}</button>`).join('')}</div>` : ''}<div class="br-dialog-actions"><button data-br-dialog="rescue">Roadside assist (−50)</button><button data-br-dialog="garage">Choose another vehicle</button></div>`);
+    this.showDialog(`<span class="br-kicker">THE CITY CAN WAIT</span><h2 id="borough-dialog-title">Taking a breather.</h2><p>${this.game.free ? 'Change your ride or keep exploring.' : 'Your mission clock is paused.'}</p><button class="br-primary" data-br-dialog="resume">Back to the city <span>↗</span></button>${this.game.free ? `<div class="br-switch">${Object.entries(VEHICLES).map(([mode, v]) => `<button data-br-dialog="switch" data-mode="${mode}">${v.vehicle}</button>`).join('')}</div>` : ''}<div class="br-dialog-actions">${this.game.mode === 'garbage' && !this.game.free ? '<button data-br-dialog="end-route">Finish collection shift</button>' : ''}<button data-br-dialog="rescue">Roadside assist (−50)</button><button data-br-dialog="garage">Choose another vehicle</button></div>`);
   }
   openMap() {
     if (!this.game || this.game.state !== 'playing') return;
     this.showDialog('<span class="br-kicker">CROWN CITY / STREET ATLAS</span><h2 id="borough-dialog-title">Know your way.</h2><canvas id="borough-full-map" width="800" height="610" aria-label="City map. Your car is a white arrow, the job marker is yellow, police are blue, and the robber is red."></canvas><p class="br-dialog-note">WHITE / YOU · YELLOW / JOB + ROUTE · BLUE / POLICE · RED / ROBBER</p><button class="br-primary" data-br-dialog="resume">Back to the city <span>↗</span></button>');
-    this.renderer.fullMap($('borough-full-map'), this.game);
+    const map = $('borough-full-map');
+    this.renderer.fullMap(map, this.game);
+    if(this.game.garbageSites){
+      const label=document.createElement('label'); label.className='br-route-picker'; label.textContent='Next collection point (any order)';
+      const select=document.createElement('select');select.id='borough-collection-select';
+      for(const site of this.game.garbageSites.filter(s=>!s.collected)){const option=document.createElement('option');option.value=site.id;option.textContent=`${String(site.id+1).padStart(2,'0')} / ${site.name}`;select.append(option);}
+      select.value=String(this.game.target.id);label.append(select);map.after(label);
+      const choose=id=>{if(this.game.selectGarbageSite(Number(id))){select.value=String(id);this.renderer.fullMap(map,this.game);this.updateHUD();}};
+      select.addEventListener('change',()=>choose(select.value));
+      map.setAttribute('aria-label','Garbage collection planner. Yellow squares are remaining bins. Use the collection point selector or click a square to choose your next stop.');
+      map.addEventListener('click',event=>{const p=this.renderer.mapWorld(map,event.clientX,event.clientY);const site=this.game.garbageSites.filter(s=>!s.collected).sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];if(site&&Math.hypot(site.x-p.x,site.y-p.y)<180)choose(site.id);});
+    }
   }
   results() {
     const g = this.game; this.handledResults = true;
@@ -139,20 +151,21 @@ export class BoroughController {
       this.records[g.mode] = { score: g.score, rating: g.rating };
       try { localStorage.setItem(RECORD_KEY, JSON.stringify(this.records)); } catch { this.storageOK = false; }
     }
-    const detail = g.mode === 'bus' ? `${g.stats.passengers} passengers carried` : g.mode === 'garbage' ? `${g.stats.bins} bins collected` : g.mode === 'taxi' ? `${g.stats.fares} fares delivered` : g.mode === 'fire' ? `${g.completed} fires contained · ${g.failed} incidents timed out` : g.success ? 'Pursuit complete' : 'Try a different route next time';
+    const detail = g.mode === 'bus' ? `${g.stats.passengers} passengers carried` : g.mode === 'garbage' ? `${g.stats.bins}/${g.garbageSites.length*3} bins collected · ${g.completed}/${g.garbageSites.length} stops cleared` : g.mode === 'taxi' ? `${g.stats.fares} fares delivered` : g.mode === 'fire' ? `${g.completed} fires contained · ${g.failed} incidents timed out` : g.success ? 'Pursuit complete' : 'Try a different route next time';
     this.showDialog(`<span class="br-kicker">SHIFT REPORT / ${g.rating}</span><h2 id="borough-dialog-title">${g.resultTitle}.</h2><div class="br-result-score">${g.score.toLocaleString()}<span>POINTS</span></div><p>${detail}</p><div class="br-result-stats"><div><strong>${g.late}</strong><span>LATE STOPS</span></div><div><strong>${g.bumps}</strong><span>BUMPS</span></div><div><strong>${formatTime(g.time)}</strong><span>ON THE ROAD</span></div></div><button class="br-primary" data-br-dialog="retry">Another round <span>↗</span></button><div class="br-dialog-actions"><button data-br-dialog="garage">Choose another vehicle</button></div>`);
   }
   updateHUD() {
     const g = this.game; if (!g) return;
     setText('borough-objective', g.objective); setText('borough-score', String(g.score).padStart(5, '0'));
-    setText('borough-clock-label', g.free ? 'OFF DUTY' : ['escape', 'police'].includes(g.mode) ? 'PURSUIT' : 'SHIFT');
-    setText('borough-clock', g.free ? '∞' : formatTime(g.remaining));
+    setText('borough-clock-label', g.free ? 'OFF DUTY' : g.mode === 'garbage' ? 'BONUS' : ['escape', 'police'].includes(g.mode) ? 'PURSUIT' : 'SHIFT');
+    setText('borough-clock', g.free ? '∞' : g.remaining < 0 ? '+' + formatTime(-g.remaining) : formatTime(g.remaining));
     let context = '', progress = 0;
     if (g.free) context = 'P / Pause to change vehicles';
-    else if (g.mode === 'escape') { const active = g.pursuers.filter(c => !c.lost); context = g.capture > .2 ? `BOXED IN / ${formatTime(4 - g.capture)} to escape` : active.some(c => c.search > 9.9) ? 'IN SIGHT / Use a corner or alley' : 'SEARCHING / Stay out of sight'; progress = g.capture > .2 ? g.capture / 4 : 1 - Math.max(0, ...active.map(c => c.search)) / 10; }
-    else if (g.mode === 'police') { context = g.capture > .1 ? `SURRENDER / ${Math.round(g.capture / 3 * 100)}%` : `E / Siren ${g.siren ? 'ON' : 'OFF'} · Get ahead and block`; progress = g.capture / 3; }
+    else if (g.mode === 'escape') { const left=Math.max(0,g.searchDuration-g.escapeHidden,25-g.time);context=g.capture>.2?`BOXED IN / ${formatTime(4-g.capture)} to escape`:g.escapeHidden<.1?'IN SIGHT / Police are sharing your location':`SEARCH / Stay hidden ${formatTime(left)}`;progress=g.capture>.2?g.capture/4:g.escapeHidden/(g.escapeHidden+left); }
+    else if (g.mode === 'police') { context = g.robber.surrendering ? `ROBBER YIELDING / Brake and stop nearby · ${Math.round(g.capture/2*100)}%` : g.capture>.1 ? `SURRENDER / ${Math.round(g.capture/2*100)}%` : !g.siren ? 'E / Switch ON your siren to make the robber yield' : `FOLLOW CLOSELY / ${Math.round(g.compliance/6*100)}% · Stay inside the red ring`;progress=g.robber.surrendering?g.capture/2:g.compliance/6; }
     else if (g.service) { progress = Math.min(1, g.service.elapsed / g.service.duration); context = g.mode === 'bus' && progress === 1 && g.time < g.deadline ? `BOARDING COMPLETE / Depart in ${formatTime(g.deadline - g.time)}` : `KEEP STILL / ${Math.round(progress * 100)}%`; }
     else if (g.mode === 'fire' && g.hose) { context = `AIM + HOLD / Incident ${formatTime(g.deadline - g.time)}`; progress = 1 - g.hotspots.reduce((s, f) => s + f.heat, 0) / g.hotspots.length; }
+    else if(g.mode==='garbage') {const near=g.garbageSites.some(s=>!s.collected&&Math.hypot(s.x-g.player.x,s.y-g.player.y)<70);context=near?'NEARBY BINS / Align, stop and press E to collect':`${g.target.name} · ${g.stopStatus().text} · M plans your route`;progress=g.completed/g.garbageSites.length;}
     else { const left = g.deadline - g.time; context = `${g.stopStatus().text} · ${left >= 0 ? 'DUE ' + formatTime(left) : 'LATE +' + formatTime(-left)}`; }
     setText('borough-context', context); $('borough-progress').style.width = `${Math.max(0, Math.min(100, progress * 100))}%`;
     $('borough-dispatch').hidden = g.noticeTime <= 0; if (g.noticeTime > 0) setText('borough-dispatch', g.notice);

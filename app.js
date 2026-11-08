@@ -1,7 +1,7 @@
 import { PacmanGame, MAZE, DIRECTIONS } from './engine.js';
 import { DinoController, drawDinoPreview } from './dino.js';
 import { WormController } from './worm.js';
-import { BoroughController } from './borough.js';
+import { BoroughController } from './borough.js?v=2';
 import { drawWormPreview } from './worm-renderer.js';
 
 const $ = id => document.getElementById(id);
