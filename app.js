@@ -1,5 +1,7 @@
 import { PacmanGame, MAZE, DIRECTIONS } from './engine.js';
 import { DinoController, drawDinoPreview } from './dino.js';
+import { WormController } from './worm.js';
+import { drawWormPreview } from './worm-renderer.js';
 
 const $ = id => document.getElementById(id);
 const board = $('board');
@@ -24,6 +26,7 @@ let previousLives = -1;
 let lastGame = 'pacman';
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const dino = new DinoController({ sound, unlockAudio });
+const worm = new WormController({ sound, unlockAudio });
 
 function sound(event) {
   if (!soundEnabled || !audioContext || audioContext.state !== 'running') return;
@@ -35,6 +38,9 @@ function sound(event) {
     death: [350, 65, 0.65], fruit: [600, 1200, 0.2], 'extra-life': [520, 1040, 0.4],
     'level-clear': [400, 1200, 0.7],
     jump: [320, 760, 0.12], milestone: [650, 1000, 0.25],
+    'worm-heart':[660,1320,.4], 'worm-treasure':[780,1050,.22], 'worm-key':[520,1100,.3],
+    'worm-chest':[420,1400,.6], 'worm-relic':[640,1560,.6], 'worm-door':[280,880,.45],
+    'worm-push':[130,95,.1], 'worm-sanctuary':[440,880,.45], 'worm-rescue':[380,540,.35], 'worm-zone':[330,990,.6],
   };
   if (!tones[event]) return;
   const [start, end, duration] = tones[event];
@@ -59,8 +65,8 @@ function unlockAudio() {
 }
 
 function updateSoundButton() {
-  const label = `Turn sound ${soundEnabled ? 'off' : 'on'}`;
   document.querySelectorAll('[data-sound-toggle]').forEach(button => {
+    const label = button.dataset.soundLang === 'de' ? `Ton ${soundEnabled ? 'ausschalten' : 'einschalten'}` : `Turn sound ${soundEnabled ? 'off' : 'on'}`;
     button.setAttribute('aria-pressed', String(soundEnabled));
     button.setAttribute('aria-label', label);
     button.title = label;
@@ -239,6 +245,7 @@ function updateHud() {
 
 function startGame() {
   dino.stop();
+  worm.stop();
   lastGame = 'pacman';
   game = new PacmanGame();
   active = true;
@@ -263,7 +270,7 @@ function returnToLobby() {
   $('game-screen').hidden = true;
   document.body.classList.remove('game-active');
   document.title = "Georg's Arcade — Play a classic";
-  $(lastGame === 'dino' ? 'dino-play-button' : 'play-button').focus({ preventScroll: true });
+  $(({dino:'dino-play-button',wurm:'worm-play-button'})[lastGame] || 'play-button').focus({ preventScroll: true });
 }
 
 function togglePause() {
@@ -277,14 +284,24 @@ function togglePause() {
 function route() {
   if (location.hash === '#pacman') startGame();
   else if (location.hash === '#dino') {
+    worm.stop();
     active = false;
     game = null;
     lastGame = 'dino';
     $('lobby').hidden = true;
     $('game-screen').hidden = true;
     dino.start();
+  } else if (location.hash === '#wurm') {
+    dino.stop();
+    active = false;
+    game = null;
+    lastGame = 'wurm';
+    $('lobby').hidden = true;
+    $('game-screen').hidden = true;
+    worm.start();
   } else {
     dino.stop();
+    worm.stop();
     returnToLobby();
   }
 }
@@ -296,6 +313,7 @@ function navigateToGame(name) {
 
 $('play-button').addEventListener('click', () => navigateToGame('pacman'));
 $('dino-play-button').addEventListener('click', () => navigateToGame('dino'));
+$('worm-play-button').addEventListener('click', () => navigateToGame('wurm'));
 $('back-button').addEventListener('click', () => { location.hash = ''; });
 $('pause-button').addEventListener('click', togglePause);
 $('restart-button').addEventListener('click', startGame);
@@ -357,6 +375,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) pause
 function frame(time) {
   requestAnimationFrame(frame);
   dino.frame(time);
+  worm.frame(time);
   if (!active || !game) { lastTime = 0; return; }
   const dt = lastTime ? Math.min((time - lastTime) / 1000, 0.05) : 0;
   lastTime = time;
@@ -371,6 +390,7 @@ previewGame.player.x = 6; previewGame.player.y = 23; previewGame.player.dir = 'r
 previewGame.ghosts.forEach((g, i) => {g.x = 11 + i * 2;g.y = 17;g.phase = 'roaming';g.dir = 'left';});
 render($('preview').getContext('2d'), previewGame, 0, true);
 drawDinoPreview($('dino-preview'));
+drawWormPreview($('worm-preview'));
 updateSoundButton();
-if (['#pacman', '#dino'].includes(location.hash)) route();
+if (['#pacman', '#dino', '#wurm'].includes(location.hash)) route();
 requestAnimationFrame(frame);

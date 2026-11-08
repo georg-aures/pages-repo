@@ -1,6 +1,6 @@
 # Georg's Arcade
 
-A static JavaScript arcade for GitHub Pages. The homepage offers two games: classic-style Pac-Man and Dino Run, a pixel-art endless runner.
+A static JavaScript arcade for GitHub Pages. The homepage offers three games: classic-style Pac-Man, Dino Run with Auto mode, and the German-language magical exploration game Wurm & Wunder.
 
 ## Play
 
@@ -29,7 +29,26 @@ Direct link: **https://georg-aures.github.io/pages-repo/#dino**.
 
 Jump over single cacti and clusters. Birds appear after fifteen seconds; duck under low birds or stay on the ground beneath high birds. Score increases with distance and speed rises gradually to a cap. On smaller screens, the maximum speed preserves visible reaction time. A collision ends the current run.
 
-Each game stores a separate personal best in the current browser. Sound is shared across the arcade, starts muted, and can be enabled with the music-note button. Both games also run when browser storage is unavailable. There is no server or public leaderboard.
+Pac-Man and Dino Run store separate personal bests in the current browser. Sound is shared across the arcade, starts muted, and can be enabled with the music-note button. All three games also run when browser storage is unavailable. There is no server or public leaderboard.
+
+### Wurm & Wunder
+
+Direct link: **https://georg-aures.github.io/pages-repo/#wurm**.
+
+A cozy, turn-based digging adventure with original vector artwork. The world extends indefinitely sideways and down, generated deterministically from its saved seed. Camera movement, sparkles, and drifting light are visual only; the world waits for the player's next turn.
+
+- **Dig:** arrows or WASD, direction buttons, or tap a directly adjacent cell. All four directions work; dug tunnels remain open. The worm's body is decorative and does not block backtracking.
+- **Hearts:** each heart creates one persistent flower, crystal, group of fireflies, vine, or starflower. Hearts awaken the world rather than acting as a life meter.
+- **Collection:** T or the Schatzkammer button displays gems, necklaces, chests, princess shoes, and three special relics. Chests award gems and an additional piece of jewelry or a shoe. Collected cells cannot be looted twice.
+- **Depth:** the first 18 rows are peaceful. From 18 m, key chambers and movable rocks appear. Ordinary gates consume a flower key; the moon medallion, star gem, and rose shoe open matching special chambers without being consumed. Every chamber has its key or matching relic two cells above the entrance, with a safe approach.
+- **Gentle hazards:** from 52 m, spores and crumbling ground appear; deeper down, cave creatures and falling stones join them. Warning rings and marks show upcoming danger. All hazards advance only after a successful move or an intentional Wait. A mishap returns the worm to the last flower-lamp sanctuary and preserves the collection.
+- **Wait:** Space or the clock button advances one turn without moving.
+- **Undo:** U, Backspace, or the curved arrow restores the previous turn, including inventory, gates, pushed rocks, and heart magic. Up to twelve steps are available in the current session.
+- **Home:** the house button returns to the peaceful meadow while retaining the explored world and all treasures.
+- **Help:** H or the question-mark button explains the rules. Escape closes an open dialog, or returns to the arcade when no dialog is open.
+- **Save:** exploration, inventory, opened gates, moved rocks, checkpoints, and world magic are saved automatically under `georg-arcade-worm-v1`. Reopening the game resumes the same world. If browser storage is blocked or full, a visible note explains that the current world remains in the open tab. New World requires confirmation before replacing the existing adventure.
+
+All Wurm & Wunder interface text is German. The renderer uses the same original worm, treasure, flower, and mushroom artwork in the game, collection, and arcade card. It respects reduced-motion preferences and needs no downloaded image assets.
 
 ## Run locally
 
@@ -55,8 +74,11 @@ The site files are in the repository root. In **Settings → Pages**, use **Depl
 - `dino-engine.js` — frame-independent runner physics, obstacles, collision shapes, and difficulty.
 - Auto uses the jump's ballistic trajectory, centered on each cactus's predicted crossing. It resolves the dinosaur's position after each obstacle movement, including during a mid-run takeover. Regular collision checks remain enabled in Auto mode.
 - `dino.js` — original pixel-art renderer and Dino Run controls, HUD, overlays, and storage.
+- `worm-engine.js` — deterministic terrain, rooms, treasure, heart magic, turn-based hazards, undo, and saved-world rules.
+- `worm-icons.js` and `worm-renderer.js` — original shared vector artwork, depth palettes, connected tunnels, camera, and decorative effects.
+- `worm.js` and `worm.css` — German interface, keyboard/touch controls, collection and help dialogs, persistence, and responsive magical presentation.
 - `app.js` — Pac-Man renderer and controls, game routing, shared animation loop, and sound.
-- `tests/engine.test.js`, `tests/dino.test.js`, and `tests/dino-auto.test.js` — game-rule regression tests, including long automatic runs and manual/automatic handovers.
+- `tests/engine.test.js`, `tests/dino.test.js`, `tests/dino-auto.test.js`, and `tests/worm.test.js` — game-rule regression tests, including long automatic runs, manual/automatic handovers, saved worlds, and solvable treasure chambers.
 
 Run the tests with Node.js 18 or later:
 
