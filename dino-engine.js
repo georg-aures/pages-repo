@@ -15,6 +15,7 @@ export class DinoRun {
   reset() {
     this.state = 'ready';
     this.paused = false;
+    this.autoMode = false;
     this.elapsed = 0;
     this.distance = 0;
     this.score = 0;
@@ -27,7 +28,7 @@ export class DinoRun {
   }
 
   jump() {
-    if (this.paused || this.state === 'game-over') return false;
+    if (this.autoMode || this.paused || this.state === 'game-over') return false;
     if (this.state === 'ready') this.state = 'playing';
     const p = this.player;
     if (!p.grounded || p.ducking) return false;
@@ -38,12 +39,13 @@ export class DinoRun {
   }
 
   releaseJump() {
+    if (this.autoMode) return;
     // Even a quick tap clears a tall cactus; holding gives a higher arc.
     if (this.player.vy < -620) this.player.vy = -620;
   }
 
   duck(held) {
-    if (this.paused || this.state === 'game-over') return;
+    if (this.autoMode || this.paused || this.state === 'game-over') return;
     const p = this.player;
     const bottom = p.y + p.height;
     p.ducking = held;
@@ -57,6 +59,46 @@ export class DinoRun {
     if (this.state !== 'playing') return this.paused;
     this.paused = !this.paused;
     return this.paused;
+  }
+
+  setAutoMode(enabled) {
+    if (enabled && this.state === 'game-over') this.reset();
+    this.autoMode = enabled;
+    if (enabled && this.state === 'ready') this.state = 'playing';
+    if (!enabled && this.player.ducking) {
+      const bottom = this.player.y + this.player.height;
+      Object.assign(this.player, { ducking: false, width: 48, height: 48, y: bottom - 48 });
+    }
+  }
+
+  updateAutoPose() {
+    const p = this.player;
+    const wasGrounded = p.grounded;
+    const timeToApex = -JUMP_SPEED / GRAVITY;
+    const jumpHeight = JUMP_SPEED ** 2 / (2 * GRAVITY);
+    let lift = 0, vy = 0;
+    for (const obstacle of this.obstacles) {
+      if (obstacle.type !== 'cactus') continue;
+      // Put the apex exactly over the cactus/cluster's center. Resolve the same
+      // ballistic arc from distance after obstacles move, so late frames and
+      // taking over mid-run cannot miss the ideal launch frame.
+      const secondsToCenter = (obstacle.x + obstacle.width / 2 - (p.x + 24)) / this.speed;
+      if (Math.abs(secondsToCenter) >= timeToApex) continue;
+      const height = jumpHeight - GRAVITY * secondsToCenter ** 2 / 2;
+      if (height > lift) {
+        lift = height;
+        vy = -GRAVITY * secondsToCenter;
+      }
+    }
+    const ducking = lift === 0 && this.obstacles.some(obstacle =>
+      obstacle.type === 'bird' && obstacle.y + obstacle.height > GROUND - 48 &&
+      obstacle.x + obstacle.width > p.x && obstacle.x < p.x + 60 + this.speed * 0.18);
+    const height = ducking ? 28 : 48;
+    Object.assign(p, {
+      ducking, width: ducking ? 60 : 48, height,
+      y: GROUND - height - lift, vy, grounded: lift === 0,
+    });
+    if (wasGrounded && !p.grounded) this.events.push('jump');
   }
 
   createObstacle() {
@@ -106,7 +148,7 @@ export class DinoRun {
     this.distance += this.speed * dt;
     this.score = Math.floor(this.distance / 16);
     const p = this.player;
-    if (!p.grounded) {
+    if (!this.autoMode && !p.grounded) {
       p.y += p.vy * dt + 0.5 * GRAVITY * dt * dt;
       p.vy += GRAVITY * dt;
       if (p.y + p.height >= GROUND) {
@@ -123,6 +165,7 @@ export class DinoRun {
     }
     this.obstacles.forEach(obstacle => { obstacle.x -= this.speed * dt; });
     this.obstacles = this.obstacles.filter(obstacle => obstacle.x + obstacle.width > -10);
+    if (this.autoMode) this.updateAutoPose();
     const boxes = this.playerBoxes();
     if (this.obstacles.some(obstacle => this.obstacleBoxes(obstacle).some(box => boxes.some(player => overlaps(player, box))))) {
       this.state = 'game-over';

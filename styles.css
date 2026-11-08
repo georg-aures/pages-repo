@@ -34,8 +34,10 @@ button,a{touch-action:manipulation}.dpad button{touch-action:none}
 .dino-inputs .primary:hover { transform: none; }
 .dino-inputs .input-key { margin-left: 8px; font-size: 8px; letter-spacing: 1px; font-weight: 400; opacity: .65; }
 .dino-inputs [aria-pressed=true] { color: #16190a; background: var(--accent); }
-.dino-actions { margin-top: 0; min-width: 235px; }
+.dino-actions { margin-top: 0; min-width: 320px; }
 .dino-actions .button, .dino-actions .icon-button { min-height: 47px; }
+.dino-actions .dino-auto-button { flex: 0 0 82px; white-space: nowrap; font-size: 12px; }
+.dino-actions .dino-auto-button[aria-pressed=true] { background: var(--accent); color: #191c0c; border-color: var(--accent); }
 .dino-control-note { margin-top: 14px; font-size: 11px; color: #85878a; line-height: 1.6; }
 .desktop-dino-note { float: right; }
 .dino-instructions { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 36px; margin-top: 35px; padding-top: 27px; border-top: 1px solid var(--line); }
@@ -47,7 +49,7 @@ button,a{touch-action:manipulation}.dpad button{touch-action:none}
 @media (max-width: 850px) {
   .dino-toolbar { gap: 18px; }
   .dino-inputs .button { padding: 0 13px; gap: 7px; }
-  .dino-actions { min-width: 200px; }
+  .dino-actions { min-width: 300px; }
   .dino-inputs .input-key { font-size: 7px; }
   .dino-instructions { gap: 22px; }
 }
@@ -66,7 +68,7 @@ button,a{touch-action:manipulation}.dpad button{touch-action:none}
   .dino-inputs { flex-basis: 100%; max-width: none; }
   .dino-inputs .button { min-height: 49px; padding: 0 17px; }
   .dino-inputs .input-key { font-size: 7px; }
-  .dino-actions { margin-top: 0; }
+  .dino-actions { margin-top: 0; min-width: 0; }
   .dino-actions .button, .dino-actions .icon-button { min-height: 42px; }
   .dino-control-note { font-size: 10px; margin-top: 12px; }
   .desktop-dino-note { display: none; }

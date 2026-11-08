@@ -24,6 +24,7 @@ Direct link: **https://georg-aures.github.io/pages-repo/#dino**.
 - **Start/jump:** Space, up arrow, W, the Jump button, or tap the desert. Hold to jump higher; release for a shorter hop. There is no midair double jump.
 - **Duck:** hold down arrow, S, or the Duck button. Ducking in midair brings the dinosaur down sooner. Keyboard activation of the Duck button toggles ducking for assistive technology users.
 - **Pause/resume:** P or the Pause button. The run waits for your first jump, so there is time to read the controls.
+- **Auto:** the Auto button beside Pause starts a perfect automatic run. It plans jumps over each cactus or cluster and ducks under low birds. Click it again to return to manual control without resetting the score. Jump/Duck inputs are disabled while Auto drives. Pause still works, and restarting keeps Auto enabled; returning to the collection starts the next visit in manual mode. Enabling Auto after game over starts a fresh automatic run.
 - **Restart:** the circular arrow, R, or Enter while the desert has focus. After a collision, choose **Run again** or jump to try again immediately.
 
 Jump over single cacti and clusters. Birds appear after fifteen seconds; duck under low birds or stay on the ground beneath high birds. Score increases with distance and speed rises gradually to a cap. On smaller screens, the maximum speed preserves visible reaction time. A collision ends the current run.
@@ -52,9 +53,10 @@ The site files are in the repository root. In **Settings → Pages**, use **Depl
 - `styles.css` — desktop and phone layouts.
 - `engine.js` — maze, movement, four ghost personalities, scoring, and game lifecycle, independent of the DOM.
 - `dino-engine.js` — frame-independent runner physics, obstacles, collision shapes, and difficulty.
+- Auto uses the jump's ballistic trajectory, centered on each cactus's predicted crossing. It resolves the dinosaur's position after each obstacle movement, including during a mid-run takeover. Regular collision checks remain enabled in Auto mode.
 - `dino.js` — original pixel-art renderer and Dino Run controls, HUD, overlays, and storage.
 - `app.js` — Pac-Man renderer and controls, game routing, shared animation loop, and sound.
-- `tests/engine.test.js` and `tests/dino.test.js` — 24 game-rule regression tests.
+- `tests/engine.test.js`, `tests/dino.test.js`, and `tests/dino-auto.test.js` — game-rule regression tests, including long automatic runs and manual/automatic handovers.
 
 Run the tests with Node.js 18 or later:
 

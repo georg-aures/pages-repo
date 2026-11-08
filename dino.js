@@ -112,6 +112,7 @@ export class DinoController {
     try { this.best = Math.max(0, Number(localStorage.getItem(BEST_KEY)) || 0); } catch {}
     $('dino-back-button').addEventListener('click', () => { location.hash = ''; });
     $('dino-pause-button').addEventListener('click', () => this.togglePause());
+    $('dino-auto-button').addEventListener('click', () => this.toggleAuto());
     $('dino-restart-button').addEventListener('click', () => this.restart());
     $('dino-overlay-button').addEventListener('click', () => {
       if (this.model.state === 'game-over') this.restart(true);
@@ -173,17 +174,19 @@ export class DinoController {
   }
 
   restart(run = false) {
+    const auto = this.model.autoMode;
     this.model.reset();
     this.duckSources.clear();
     this.overlayMode = undefined;
     this.lastTime = 0;
-    if (run) this.model.jump();
+    if (auto) this.model.setAutoMode(true);
+    else if (run) this.model.jump();
     this.updateHud();
     this.board.focus({ preventScroll: true });
   }
 
   jump() {
-    if (!this.active) return;
+    if (!this.active || this.model.autoMode) return;
     this.unlockAudio();
     if (this.model.state === 'game-over') this.restart(true);
     else this.model.jump();
@@ -191,10 +194,18 @@ export class DinoController {
   }
 
   setDuck(source, held) {
-    if (!this.active) return;
+    if (!this.active || this.model.autoMode) return;
     if (held) this.duckSources.add(source);
     else this.duckSources.delete(source);
     this.model.duck(this.duckSources.size > 0);
+  }
+
+  toggleAuto() {
+    if (!this.active) return;
+    this.duckSources.clear();
+    this.model.setAutoMode(!this.model.autoMode);
+    this.unlockAudio();
+    this.updateHud();
   }
 
   togglePause() {
@@ -244,13 +255,16 @@ export class DinoController {
     $('dino-score').textContent = String(model.score).padStart(6, '0');
     $('dino-best').textContent = String(this.best).padStart(6, '0');
     $('dino-speed').textContent = `${(model.speed / 320).toFixed(1)}×`;
-    const status = model.paused ? 'Paused' : model.state === 'ready' ? 'Ready when you are' : model.state === 'game-over' ? 'A good run. Another try?' : 'Keep those little legs moving';
+    const status = model.paused ? 'Paused' : model.autoMode ? 'Auto mode · perfect run' : model.state === 'ready' ? 'Ready when you are' : model.state === 'game-over' ? 'A good run. Another try?' : 'Keep those little legs moving';
     if ($('dino-status').textContent !== status) $('dino-status').textContent = status;
     $('dino-pause-button').disabled = model.state !== 'playing';
     $('dino-pause-button').querySelector('span').textContent = model.paused ? 'Resume' : 'Pause';
-    $('dino-jump-button').disabled = model.paused;
+    $('dino-auto-button').setAttribute('aria-pressed', String(model.autoMode));
+    $('dino-auto-button').textContent = model.autoMode ? 'Auto on' : 'Auto';
+    $('dino-auto-button').title = model.autoMode ? 'Turn off auto mode and play manually' : 'Start a perfect automatic run';
+    $('dino-jump-button').disabled = model.paused || model.autoMode;
     $('dino-jump-button').firstChild.nodeValue = model.state === 'game-over' ? 'Run again ' : 'Jump ';
-    $('dino-duck-button').disabled = model.paused || model.state !== 'playing';
+    $('dino-duck-button').disabled = model.paused || model.autoMode || model.state !== 'playing';
     $('dino-duck-button').setAttribute('aria-pressed', String(model.player.ducking));
     this.showOverlay(model.state === 'game-over' ? 'over' : model.paused ? 'paused' : null);
   }
